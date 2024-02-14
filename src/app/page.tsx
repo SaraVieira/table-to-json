@@ -1,10 +1,11 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Code } from "@/components/ui/syntaxHighlighter";
 import { Textarea } from "@/components/ui/textarea";
 import * as cheerio from "cheerio";
-import { head, omit } from "lodash-es";
+import { head, omit, pick } from "lodash-es";
 import { useEffect, useState } from "react";
 
 const defaultA = `<table class="wikitable sortable jquery-tablesorter" style="margin:1em auto;">
@@ -797,6 +798,7 @@ export default function Home() {
   const [copied, setCopied] = useState(false);
   const [selected, setSelected] = useState<string[]>([]);
   const [headers, setHeaders] = useState<string[]>([]);
+  const [originalJson, setOriginalJSon] = useState<any[]>([]);
 
   const onCopy = () => {
     setCopied(true);
@@ -831,18 +833,17 @@ export default function Home() {
               .map((a) => $(a).text().split("\n").join("")),
           ];
         });
+      const arr = bodyElements.reduce((acc, curr) => {
+        let thisOne: { [a: string]: string } = {};
+        headersText.map((header, i) => {
+          if (header && curr[i]) thisOne[header] = curr[i];
+        });
 
-      setJson(
-        bodyElements.reduce((acc, curr) => {
-          let thisOne: { [a: string]: string } = {};
-          headersText.map((header, i) => {
-            if (header && curr[i]) thisOne[header] = curr[i];
-          });
-
-          acc.push(thisOne as any);
-          return acc;
-        }, [])
-      );
+        acc.push(thisOne as any);
+        return acc;
+      }, []);
+      setJson(arr);
+      setOriginalJSon(arr);
       setSelected(headersText.filter((e) => e));
       setHeaders(headersText.filter((e) => e));
     } else {
@@ -851,8 +852,8 @@ export default function Home() {
   };
 
   useEffect(() => {
-    if (json) {
-      console.log(selected, headers);
+    if (json && originalJson) {
+      setJson(originalJson.map((l) => pick(l, selected)));
     }
   }, [selected]);
   return (
@@ -868,10 +869,11 @@ export default function Home() {
           onChange={(e) => setTable(e.target.value)}
         />
       </div>
-      {json ? (
-        <section>
-          <div className="flex gap-2 flex-wrap mb-4">
-            {headers.map((header) => (
+
+      <section>
+        <div className="flex gap-2 flex-wrap mb-4">
+          {json ? (
+            headers.map((header) => (
               <div className="items-top flex space-x-2" key={header}>
                 <Checkbox
                   id={header}
@@ -891,9 +893,13 @@ export default function Home() {
                   </label>
                 </div>
               </div>
-            ))}
-          </div>
-          <div className="relative">
+            ))
+          ) : (
+            <Skeleton className="h-4 w-full" />
+          )}
+        </div>
+        <div className="relative h-full">
+          {json && (
             <Button
               onClick={onCopy}
               size={"sm"}
@@ -933,10 +939,12 @@ export default function Home() {
                 </svg>
               )}
             </Button>
-            <Code code={JSON.stringify(json, null, 2)}></Code>
-          </div>
-        </section>
-      ) : null}
+          )}
+          <Code
+            code={JSON.stringify(json || { mode: "waiting for info" }, null, 2)}
+          ></Code>
+        </div>
+      </section>
     </main>
   );
 }

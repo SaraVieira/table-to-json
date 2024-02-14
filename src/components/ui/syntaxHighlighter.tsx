@@ -9,6 +9,7 @@ export const Code = ({ code }: { code: string }) => {
         borderRadius: 4,
         background: "hsl(var(--background))",
         border: "1px solid hsl(var(--input))",
+        minHeight: "100%",
       }}
     >
       {code}
