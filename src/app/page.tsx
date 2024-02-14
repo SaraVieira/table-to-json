@@ -796,6 +796,7 @@ export default function Home() {
   const [json, setJson] = useState<any[]>();
   const [copied, setCopied] = useState(false);
   const [selected, setSelected] = useState<string[]>([]);
+  const [headers, setHeaders] = useState<string[]>([]);
 
   const onCopy = () => {
     setCopied(true);
@@ -843,6 +844,7 @@ export default function Home() {
         }, [])
       );
       setSelected(headersText.filter((e) => e));
+      setHeaders(headersText.filter((e) => e));
     } else {
       console.log("oh no");
     }
@@ -850,7 +852,7 @@ export default function Home() {
 
   useEffect(() => {
     if (json) {
-      console.log(selected, Object.keys(json[0]));
+      console.log(selected, headers);
     }
   }, [selected]);
   return (
@@ -869,7 +871,7 @@ export default function Home() {
       {json ? (
         <section>
           <div className="flex gap-2 flex-wrap mb-4">
-            {Object.keys(json[0]).map((header) => (
+            {headers.map((header) => (
               <div className="items-top flex space-x-2" key={header}>
                 <Checkbox
                   id={header}
@@ -903,11 +905,11 @@ export default function Home() {
                   width="24"
                   height="24"
                   viewBox="0 0 24 24"
-                  stroke-width="1.5"
+                  strokeWidth="1.5"
                   stroke="currentColor"
                   fill="none"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                 >
                   <path stroke="none" d="M0 0h24v24H0z" fill="none" />
                   <path d="M7 7m0 2.667a2.667 2.667 0 0 1 2.667 -2.667h8.666a2.667 2.667 0 0 1 2.667 2.667v8.666a2.667 2.667 0 0 1 -2.667 2.667h-8.666a2.667 2.667 0 0 1 -2.667 -2.667z" />
@@ -919,11 +921,11 @@ export default function Home() {
                   width="24"
                   height="24"
                   viewBox="0 0 24 24"
-                  stroke-width="1.5"
+                  strokeWidth="1.5"
                   stroke="currentColor"
                   fill="none"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                 >
                   <path stroke="none" d="M0 0h24v24H0z" fill="none" />
                   <path d="M7 7m0 2.667a2.667 2.667 0 0 1 2.667 -2.667h8.666a2.667 2.667 0 0 1 2.667 2.667v8.666a2.667 2.667 0 0 1 -2.667 2.667h-8.666a2.667 2.667 0 0 1 -2.667 -2.667z" />
