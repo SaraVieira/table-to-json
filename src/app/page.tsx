@@ -838,7 +838,7 @@ export default function Home() {
             if (header && curr[i]) thisOne[header] = curr[i];
           });
 
-          acc.push(thisOne);
+          acc.push(thisOne as any);
           return acc;
         }, [])
       );
@@ -870,7 +870,7 @@ export default function Home() {
         <section>
           <div className="flex gap-2 flex-wrap mb-4">
             {Object.keys(json[0]).map((header) => (
-              <div className="items-top flex space-x-2">
+              <div className="items-top flex space-x-2" key={header}>
                 <Checkbox
                   id={header}
                   checked={selected.includes(header)}
