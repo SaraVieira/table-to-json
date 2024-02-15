@@ -10,6 +10,8 @@ export const Code = ({ code }: { code: string }) => {
         background: "hsl(var(--background))",
         border: "1px solid hsl(var(--input))",
         minHeight: "100%",
+        maxHeight: "100%",
+        overflow: "auto",
       }}
     >
       {code}

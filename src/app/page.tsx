@@ -1,11 +1,13 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { CopyToClipboard } from "@/components/ui/copyToClipboard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Code } from "@/components/ui/syntaxHighlighter";
 import { Textarea } from "@/components/ui/textarea";
-import * as cheerio from "cheerio";
-import { head, omit, pick } from "lodash-es";
+import { table2json } from "@/lib/table2json";
+
+import { isEqual, pick } from "lodash-es";
 import { useEffect, useState } from "react";
 
 const defaultA = `<table class="wikitable sortable jquery-tablesorter" style="margin:1em auto;">
@@ -788,67 +790,25 @@ const defaultA = `<table class="wikitable sortable jquery-tablesorter" style="ma
 <td style="text-align:center;">2019
 </td>
 <td style="text-align:right" data-sort-value="0.6585">317,000–1&nbsp;million <small>(estimate)</small>
-</td>
+</td>https://jsheroes.io/img/banners/default.svg
 <td style="text-align:center;"><sup id="cite_ref-118" class="reference"><a href="#cite_note-118">[104]</a></sup><sup id="cite_ref-119" class="reference"><a href="#cite_note-119">[105]</a></sup>
 </td></tr></tbody><tfoot></tfoot></table>`;
 
 export default function Home() {
   const [table, setTable] = useState(defaultA);
   const [json, setJson] = useState<any[]>();
-  const [copied, setCopied] = useState(false);
+
   const [selected, setSelected] = useState<string[]>([]);
   const [headers, setHeaders] = useState<string[]>([]);
   const [originalJson, setOriginalJSon] = useState<any[]>([]);
 
-  const onCopy = () => {
-    setCopied(true);
-    navigator.clipboard.writeText(JSON.stringify(json, null, 2));
-    window.setTimeout(() => {
-      setCopied(false);
-    }, 2000);
-  };
-
   const onSubmit = () => {
-    const $ = cheerio.load(table);
-    if ($("table").html()) {
-      const headersText = $("table tr th")
-        .text()
-        .split("\n")
-        .map((value) =>
-          value
-            .replace(/\[.*?\]/g, "")
-            .toLocaleLowerCase()
-            .split(" ")
-            .join("_")
-        );
+    const { json, headers } = table2json({ table });
 
-      let bodyElements: string[][] = [];
-      $("table tbody")
-        .find("tr")
-        .each((_, element) => {
-          bodyElements = [
-            ...bodyElements,
-            element.children
-              .filter((a) => a.type === "tag")
-              .map((a) => $(a).text().split("\n").join("")),
-          ];
-        });
-      const arr = bodyElements.reduce((acc, curr) => {
-        let thisOne: { [a: string]: string } = {};
-        headersText.map((header, i) => {
-          if (header && curr[i]) thisOne[header] = curr[i];
-        });
-
-        acc.push(thisOne as any);
-        return acc;
-      }, []);
-      setJson(arr);
-      setOriginalJSon(arr);
-      setSelected(headersText.filter((e) => e));
-      setHeaders(headersText.filter((e) => e));
-    } else {
-      console.log("oh no");
-    }
+    setJson(json);
+    setOriginalJSon(json);
+    setHeaders(headers);
+    setSelected(headers);
   };
 
   useEffect(() => {
@@ -857,22 +817,22 @@ export default function Home() {
     }
   }, [selected]);
   return (
-    <main className="grid grid-cols-2 gap-8 sm:p-24 p-8 min-h-screen container">
-      <div className="relative">
-        <Button onClick={onSubmit} className="absolute top-0 right-0">
+    <main className="grid grid-cols-2 gap-8 sm:p-24 !pb-8 p-8 container max-h-screen ">
+      <div className="h-[75vh]">
+        <Button onClick={onSubmit} className="mb-4 w-full ">
           Give me that json
         </Button>
         <Textarea
-          className="h-full"
-          placeholder="Type your message here."
+          className="h-full "
+          placeholder="Paste your table here"
           value={table}
           onChange={(e) => setTable(e.target.value)}
         />
       </div>
 
-      <section>
-        <div className="flex gap-2 flex-wrap mb-4">
-          {json ? (
+      <section className="h-[75vh]">
+        <div className="flex gap-2 flex-wrap mb-4 h-[40px] items-center">
+          {json && !isEqual(headers, ["error"]) ? (
             headers.map((header) => (
               <div className="items-top flex space-x-2" key={header}>
                 <Checkbox
@@ -895,53 +855,17 @@ export default function Home() {
               </div>
             ))
           ) : (
-            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-5 w-full" />
           )}
         </div>
         <div className="relative h-full">
-          {json && (
-            <Button
-              onClick={onCopy}
-              size={"sm"}
-              variant={"ghost"}
-              className="absolute top-0 right-0"
-            >
-              {copied ? (
-                <svg
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  strokeWidth="1.5"
-                  stroke="currentColor"
-                  fill="none"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                  <path d="M7 7m0 2.667a2.667 2.667 0 0 1 2.667 -2.667h8.666a2.667 2.667 0 0 1 2.667 2.667v8.666a2.667 2.667 0 0 1 -2.667 2.667h-8.666a2.667 2.667 0 0 1 -2.667 -2.667z" />
-                  <path d="M4.012 16.737a2.005 2.005 0 0 1 -1.012 -1.737v-10c0 -1.1 .9 -2 2 -2h10c.75 0 1.158 .385 1.5 1" />
-                  <path d="M11 14l2 2l4 -4" />
-                </svg>
-              ) : (
-                <svg
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  strokeWidth="1.5"
-                  stroke="currentColor"
-                  fill="none"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                  <path d="M7 7m0 2.667a2.667 2.667 0 0 1 2.667 -2.667h8.666a2.667 2.667 0 0 1 2.667 2.667v8.666a2.667 2.667 0 0 1 -2.667 2.667h-8.666a2.667 2.667 0 0 1 -2.667 -2.667z" />
-                  <path d="M4.012 16.737a2.005 2.005 0 0 1 -1.012 -1.737v-10c0 -1.1 .9 -2 2 -2h10c.75 0 1.158 .385 1.5 1" />
-                </svg>
-              )}
-            </Button>
-          )}
+          {json && <CopyToClipboard json={json} />}
           <Code
-            code={JSON.stringify(json || { mode: "waiting for info" }, null, 2)}
+            code={JSON.stringify(
+              json || [{ mode: "waiting for info" }],
+              null,
+              2
+            )}
           ></Code>
         </div>
       </section>
