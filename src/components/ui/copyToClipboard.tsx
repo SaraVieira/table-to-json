@@ -16,7 +16,7 @@ export const CopyToClipboard = ({ json }: { json: any[] }) => {
       onClick={onCopy}
       size={"sm"}
       variant={"ghost"}
-      className="absolute top-0 right-0"
+      className="absolute top-2 right-4"
     >
       {copied ? (
         <svg

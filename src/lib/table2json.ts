@@ -3,18 +3,26 @@ import * as cheerio from "cheerio";
 export const table2json = ({ table }: { table: string }) => {
   try {
     const $ = cheerio.load(table);
-    console.log($("table").html(), table);
     if ($("table").html()) {
-      const headersText = $("table tr th")
-        .text()
-        .split("\n")
-        .map((value) =>
-          value
-            .replace(/\[.*?\]/g, "")
-            .toLocaleLowerCase()
-            .split(" ")
-            .join("_")
-        );
+      let headersText: string[] = [];
+      $("table tr th").each((_, element) => {
+        headersText = [
+          ...headersText,
+          element.children
+            .filter((a) => a.type === "text")
+            .map((a) =>
+              $(a)
+                .text()
+                .replace(/\[.*?\]/g, "")
+                .toLocaleLowerCase()
+                .trim()
+                .split("\n")
+                .join("")
+                .split(" ")
+                .join("_")
+            )[0],
+        ];
+      });
 
       let bodyElements: string[][] = [];
       $("table tbody")
